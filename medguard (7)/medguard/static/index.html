@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>MedGuard — Hospital IoT Security</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root{
+            --sage:#8A9A5B;--sage-l:#b5c28a;--sage-d:#6a7a43;--sage-bg:rgba(138,154,91,.08);
+            --bg:#F4F4F4;--dark:#333;--mid:#777;--line:#E0E0E0;--white:#fff;
+            --red:#c0392b;--yellow:#d4841a;--green:#2e7d52;
+            --r:10px;--sh:0 2px 16px rgba(0,0,0,.08);
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{font-size:16px}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh}
+        h1,h2,h3,h4{font-family:'DM Serif Display',serif;line-height:1.2}
+
+        .layout{display:flex;min-height:100vh}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:230px;flex-shrink:0;background:var(--white);border-right:1px solid var(--line);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+
+        .brand{padding:20px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px;text-decoration:none}
+        .logo-mark{width:38px;height:38px;border-radius:10px;background:var(--sage);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+        .logo-mark svg{width:20px;height:20px}
+        .logo-text{}
+        .logo-name{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--dark);line-height:1}
+        .logo-tag{font-size:.6rem;color:var(--mid);font-weight:500;letter-spacing:.04em;margin-top:2px}
+
+        .online-chip{margin:10px 12px 2px;background:rgba(46,125,82,.07);border:1px solid rgba(46,125,82,.18);border-radius:7px;padding:7px 11px;display:flex;align-items:center;gap:7px;font-size:.72rem;font-weight:600;color:var(--green)}
+        .dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:blink 2s infinite}
+        @keyframes blink{0%,100%{box-shadow:0 0 0 0 rgba(46,125,82,.5)}50%{box-shadow:0 0 0 4px rgba(46,125,82,0)}}
+
+        .nav{flex:1;padding:8px 10px}
+        .nav-section{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);padding:13px 8px 5px}
+        .nb{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:1px;font-size:.84rem;font-weight:500;color:var(--mid);border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s}
+        .nb:hover{background:var(--bg);color:var(--dark)}
+        .nb.active{background:var(--sage-bg);color:var(--sage-d);font-weight:600}
+        .ni{width:29px;height:29px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .nb.active .ni{background:rgba(138,154,91,.18)}
+        .ni svg{width:13px;height:13px}
+        .nbadge{margin-left:auto;font-size:.62rem;font-weight:700;background:var(--red);color:#fff;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+        .sidebar-foot{padding:14px 16px;border-top:1px solid var(--line)}
+        .sf-user{display:flex;align-items:center;gap:9px}
+        .sf-avatar{width:30px;height:30px;border-radius:50%;background:var(--sage-bg);border:2px solid var(--sage-l);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--sage-d);flex-shrink:0}
+        .sf-name{font-size:.78rem;font-weight:600;color:var(--dark)}
+        .sf-role{font-size:.64rem;color:var(--mid)}
+
+        /* ── MAIN ── */
+        .main{margin-left:230px;flex:1;display:flex;flex-direction:column}
+
+        .topbar{height:54px;background:var(--white);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:40}
+        .tb-left{}
+        .tb-title{font-size:.9rem;font-weight:700;font-family:'DM Sans',sans-serif;color:var(--dark)}
+        .tb-sub{font-size:.68rem;color:var(--mid)}
+        .tb-right{display:flex;align-items:center;gap:8px}
+        .tb-chip{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--line);border-radius:50px;padding:4px 10px;font-size:.7rem;color:var(--mid);font-weight:500}
+        .tb-notif{width:30px;height:30px;border-radius:8px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+        .tb-notif svg{width:14px;height:14px;color:var(--mid)}
+        .notif-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;background:var(--red);border-radius:50%;border:1px solid var(--white)}
+
+        .page{display:none;padding:24px 26px;animation:fi .2s ease}
+        .page.active{display:block}
+        @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+        /* shared */
+        .pill{font-size:.67rem;font-weight:700;padding:2px 8px;border-radius:50px}
+        .ps{background:rgba(46,125,82,.1);color:var(--green)}
+        .pw{background:rgba(212,132,26,.1);color:var(--yellow)}
+        .pt{background:rgba(192,57,43,.1);color:var(--red)}
+        .pg{background:var(--sage-bg);color:var(--sage-d)}
+        .btn{padding:7px 15px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+        .bs{background:var(--sage);color:#fff}.bs:hover{background:var(--sage-d)}
+        .bg{background:transparent;color:var(--mid);border:1.5px solid var(--line)}.bg:hover{border-color:var(--sage);color:var(--sage-d)}
+        .card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+        .ch{padding:13px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+        .ch h4{font-size:.86rem;font-weight:700;font-family:'DM Sans',sans-serif}
+
+        /* ══════════════════════════════════
+           HOME
+        ══════════════════════════════════ */
+        .home-hero{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:44px 48px;margin-bottom:18px;display:grid;grid-template-columns:1fr 420px;gap:48px;align-items:center;background-image:radial-gradient(ellipse 50% 80% at 100% 50%,rgba(138,154,91,.08) 0%,transparent 65%)}
+
+        .hero-kicker{display:inline-flex;align-items:center;gap:6px;background:var(--sage-bg);border:1px solid rgba(138,154,91,.2);border-radius:50px;padding:3px 11px;font-size:.66rem;font-weight:700;letter-spacing:.08em;color:var(--sage-d);text-transform:uppercase;margin-bottom:16px}
+        .hero-kicker span{width:5px;height:5px;border-radius:50%;background:var(--sage);display:inline-block}
+
+        .hero-h{font-size:2.4rem;line-height:1.15;margin-bottom:14px;color:var(--dark)}
+        .hero-h em{font-style:normal;color:var(--sage)}
+        .hero-p{font-size:.92rem;color:var(--mid);line-height:1.7;margin-bottom:26px;max-width:420px}
+
+        .hero-actions{display:flex;gap:9px;margin-bottom:32px}
+
+        .hero-nums{display:flex;gap:0;padding-top:24px;border-top:1px solid var(--line)}
+        .hn{flex:1;padding-right:20px;margin-right:20px;border-right:1px solid var(--line)}
+        .hn:last-child{border-right:none;margin-right:0;padding-right:0}
+        .hn-v{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--sage-d)}
+        .hn-l{font-size:.68rem;color:var(--mid);margin-top:1px}
+
+        /* live panel */
+        .live-panel{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px;animation:float 5s ease-in-out infinite}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+        .lp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+        .lp-title{font-size:.82rem;font-weight:700}
+        .lp-live{display:flex;align-items:center;gap:4px;background:rgba(46,125,82,.1);color:var(--green);font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:50px}
+        .lp-row{display:flex;align-items:center;justify-content:space-between;background:var(--white);border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin-bottom:6px;font-size:.78rem}
+        .lp-row:last-child{margin-bottom:0}
+        .lp-name{font-weight:600;color:var(--dark)}
+        .lp-ip{font-size:.68rem;color:var(--mid);margin-top:1px}
+
+        /* quick stats row */
+        .home-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}
+        .hsc{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:flex;align-items:center;gap:14px}
+        .hsc-ico{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .hsc-ico svg{width:18px;height:18px}
+        .hsc-v{font-family:'DM Serif Display',serif;font-size:1.7rem}
+        .hsc-l{font-size:.68rem;color:var(--mid);margin-top:1px}
+
+        /* recent activity */
+        .home-bottom{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+        .act-item{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+        .act-item:last-child{border-bottom:none;padding-bottom:0}
+        .act-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+        .act-text{font-size:.8rem;color:var(--dark);line-height:1.5}
+        .act-time{font-size:.68rem;color:var(--mid);margin-top:2px}
+        .device-mini{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:.8rem}
+        .device-mini:last-child{border-bottom:none}
+        .dm-name{font-weight:600}
+        .dm-ip{font-size:.68rem;color:var(--mid);font-family:monospace}
+
+        /* ══════════════════════════════════
+           MONITOR
+        ══════════════════════════════════ */
+        .mon-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
+        .msc{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+        .msc-l{font-size:.67rem;color:var(--mid);font-weight:500;margin-bottom:2px}
+        .msc-v{font-family:'DM Serif Display',serif;font-size:1.75rem}
+        .mon-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;gap:8px;flex-wrap:wrap}
+        .ftabs{display:flex;gap:5px}
+        .ftab{padding:5px 12px;border-radius:50px;font-size:.75rem;font-weight:600;border:1.5px solid var(--line);background:transparent;cursor:pointer;color:var(--mid);transition:all .15s;font-family:'DM Sans',sans-serif}
+        .ftab.active,.ftab:hover{background:var(--sage);color:#fff;border-color:var(--sage)}
+        .dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+        .dc{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:16px;cursor:pointer;transition:box-shadow .2s,transform .15s}
+        .dc:hover{box-shadow:var(--sh);transform:translateY(-2px)}
+        .dc.safe{border-top:3px solid var(--green)}
+        .dc.warning{border-top:3px solid var(--yellow)}
+        .dc.threat{border-top:3px solid var(--red)}
+        .dc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+        .dc-ico{width:33px;height:33px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center}
+        .dc-ico svg{width:15px;height:15px}
+        .dc-name{font-weight:700;font-size:.84rem;margin-bottom:1px}
+        .dc-loc{font-size:.7rem;color:var(--mid);margin-bottom:5px}
+        .dc-ip{font-size:.68rem;color:var(--mid);font-family:monospace;margin-bottom:9px}
+        .dc-ns{display:flex;gap:16px;margin-bottom:9px}
+        .dc-nv{font-family:'DM Serif Display',serif;font-size:1.1rem}
+        .dc-nk{font-size:.64rem;color:var(--mid)}
+        .dc-ft{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--line)}
+        .mtag{font-size:.64rem;font-weight:600;background:var(--sage-bg);color:var(--sage-d);padding:2px 7px;border-radius:50px}
+        .del-btn{width:26px;height:26px;border-radius:6px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+        .del-btn:hover{background:rgba(192,57,43,.15);border-color:var(--red)}
+        .del-btn svg{width:13px;height:13px;stroke:var(--red)}
+        /* confirm modal */
+        .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+        .confirm-overlay.open{opacity:1;pointer-events:all}
+        .confirm-box{background:var(--white);border-radius:12px;width:380px;max-width:92vw;box-shadow:0 16px 40px rgba(0,0,0,.16);transform:translateY(12px);transition:transform .2s;padding:24px}
+        .confirm-overlay.open .confirm-box{transform:translateY(0)}
+        .confirm-icon{width:46px;height:46px;border-radius:50%;background:rgba(192,57,43,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+        .confirm-icon svg{width:22px;height:22px;stroke:var(--red)}
+        .confirm-title{font-size:1rem;font-weight:700;text-align:center;margin-bottom:6px}
+        .confirm-sub{font-size:.78rem;color:var(--mid);text-align:center;line-height:1.6;margin-bottom:20px}
+        .confirm-device{font-weight:700;color:var(--dark)}
+        .confirm-actions{display:flex;gap:9px;justify-content:center}
+
+        /* ══════════════════════════════════
+           ALERTS
+        ══════════════════════════════════ */
+        .alerts-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:16px}
+        .ai{border:1px solid var(--line);border-radius:var(--r);padding:13px;margin-bottom:9px;cursor:pointer;background:var(--white);transition:box-shadow .2s,border-color .2s}
+        .ai:last-child{margin-bottom:0}
+        .ai:hover{box-shadow:var(--sh)}
+        .ai.sel{border-color:var(--sage);border-left:3px solid var(--sage)}
+        .ai-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+        .ai-dev{font-weight:700;font-size:.84rem}
+        .ai-time{font-size:.66rem;color:var(--mid)}
+        .ai-type{font-size:.74rem;color:var(--mid);margin-bottom:8px}
+        .ai-sev{display:flex;align-items:center;gap:7px}
+        .sv-bar{flex:1;height:4px;border-radius:3px;background:var(--line);overflow:hidden}
+        .sv-fill{height:100%;border-radius:3px}
+        .sv-pct{font-size:.68rem;font-weight:700;width:28px}
+        /* ── NEW SHAP PANEL ── */
+        .shap-panel{padding:18px;overflow-y:auto}
+        .verdict-card{border-radius:10px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+        .verdict-card.threat{background:rgba(192,57,43,.07);border:1.5px solid rgba(192,57,43,.2)}
+        .verdict-card.warning{background:rgba(212,132,26,.07);border:1.5px solid rgba(212,132,26,.2)}
+        .verdict-card.safe{background:rgba(46,125,82,.07);border:1.5px solid rgba(46,125,82,.2)}
+        .verdict-ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .verdict-ico svg{width:22px;height:22px}
+        .verdict-ico.threat{background:rgba(192,57,43,.15)}
+        .verdict-ico.warning{background:rgba(212,132,26,.15)}
+        .verdict-ico.safe{background:rgba(46,125,82,.15)}
+        .verdict-label{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+        .verdict-label.threat{color:var(--red)}
+        .verdict-label.warning{color:var(--yellow)}
+        .verdict-label.safe{color:var(--green)}
+        .verdict-title{font-size:.95rem;font-weight:700;margin-bottom:2px}
+        .verdict-sub{font-size:.74rem;color:var(--mid);line-height:1.5}
+        .risk-wrap{margin-bottom:16px}
+        .risk-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+        .risk-label{font-size:.72rem;font-weight:700;color:var(--dark)}
+        .risk-pct{font-size:1.1rem;font-weight:700;font-family:'DM Serif Display',serif}
+        .risk-track{height:12px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:4px}
+        .risk-fill{height:100%;border-radius:6px;transition:width 1s ease}
+        .risk-scale{display:flex;justify-content:space-between;font-size:.6rem;color:var(--mid)}
+        .plain-summary{background:var(--bg);border-radius:8px;padding:13px 15px;margin-bottom:14px}
+        .plain-summary-title{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sage-d);margin-bottom:7px}
+        .plain-summary p{font-size:.8rem;color:var(--dark);line-height:1.65}
+        .factors-title{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);margin-bottom:9px;margin-top:14px}
+        .factor-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 10px;border-radius:7px;background:var(--white);border:1px solid var(--line)}
+        .factor-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem}
+        .factor-icon.risk{background:rgba(192,57,43,.1)}
+        .factor-icon.safe{background:rgba(46,125,82,.1)}
+        .factor-name{font-size:.78rem;font-weight:600;flex:1}
+        .factor-desc{font-size:.7rem;color:var(--mid);margin-top:1px}
+        .factor-bar-wrap{width:80px;flex-shrink:0}
+        .factor-bar-track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+        .factor-bar-fill{height:100%;border-radius:3px;transition:width 1s ease}
+        .factor-bar-fill.risk{background:var(--red)}
+        .factor-bar-fill.safe{background:var(--sage)}
+        .factor-impact{font-size:.64rem;font-weight:700;text-align:right;margin-top:2px}
+
+        /* ══════════════════════════════════
+           MUD PROFILES
+        ══════════════════════════════════ */
+        .mud-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+        .mud-search{padding:6px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:'DM Sans',sans-serif;color:var(--dark);background:var(--white);outline:none;width:210px;transition:border-color .15s}
+        .mud-search:focus{border-color:var(--sage)}
+        .mud-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:13px}
+        .mud-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:box-shadow .2s,transform .15s}
+        .mud-card:hover{box-shadow:var(--sh);transform:translateY(-2px)}
+        .mud-ch{padding:12px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+        .mud-di{display:flex;align-items:center;gap:9px}
+        .mud-ic{width:30px;height:30px;border-radius:7px;background:var(--sage-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .mud-ic svg{width:14px;height:14px}
+        .mud-dn{font-weight:700;font-size:.82rem}
+        .mud-dip{font-size:.67rem;color:var(--mid);font-family:monospace}
+        .mud-body{padding:13px 15px}
+        .mud-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:.76rem}
+        .mud-row:last-child{border-bottom:none}
+        .mud-k{color:var(--mid);font-weight:500}
+        .mud-v{font-weight:600;font-family:monospace;font-size:.72rem;color:var(--dark)}
+        .mud-cov{margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+        .mud-cov-l{font-size:.66rem;color:var(--mid);margin-bottom:5px}
+        .mud-cov-track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+        .mud-cov-fill{height:100%;border-radius:3px;background:var(--sage);transition:width 1.2s ease}
+        .mud-ft{padding:8px 15px;background:var(--bg);display:flex;align-items:center;justify-content:space-between;font-size:.67rem;color:var(--mid)}
+
+        /* modal */
+        .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+        .overlay.open{opacity:1;pointer-events:all}
+        .modal{background:var(--white);border-radius:14px;width:520px;max-width:94vw;box-shadow:0 20px 50px rgba(0,0,0,.16);transform:translateY(14px);transition:transform .22s}
+        .overlay.open .modal{transform:translateY(0)}
+        .modal-head{padding:18px 20px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+        .modal-head h3{font-size:1rem}
+        .mc-btn{background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--mid);line-height:1;padding:4px 6px;border-radius:5px}
+        .mc-btn:hover{background:var(--bg)}
+        .modal-body{padding:20px}
+        .mstep{display:none}
+        .mstep.active{display:block}
+        .nd-list{display:flex;flex-direction:column;gap:8px;max-height:270px;overflow-y:auto;margin-bottom:16px}
+        .nd-row{display:flex;align-items:center;gap:11px;padding:10px 13px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;transition:all .15s}
+        .nd-row:hover,.nd-row.sel{border-color:var(--sage);background:var(--sage-bg)}
+        .nd-row.sel{border-width:2px}
+        .nd-ico{width:32px;height:32px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .nd-ico svg{width:14px;height:14px}
+        .nd-name{font-weight:600;font-size:.82rem}
+        .nd-meta{font-size:.68rem;color:var(--mid);margin-top:1px}
+        .nd-pick{width:15px;height:15px;border-radius:50%;border:2px solid var(--line);margin-left:auto;flex-shrink:0;transition:all .15s}
+        .nd-row.sel .nd-pick{background:var(--sage);border-color:var(--sage)}
+        .ma{display:flex;justify-content:flex-end;gap:8px}
+
+        .gen-wrap{text-align:center;padding:8px 0 18px}
+        .gen-name{font-size:.95rem;font-weight:700;margin-bottom:2px}
+        .gen-ip{font-size:.74rem;color:var(--mid);font-family:monospace;margin-bottom:20px}
+        .gen-ring{width:72px;height:72px;border-radius:50%;background:var(--sage-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative}
+        .gen-ring svg{width:32px;height:32px}
+        .gen-spin{position:absolute;inset:-4px;border-radius:50%;border:3px solid transparent;border-top-color:var(--sage);animation:spin 1s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .gen-steps{text-align:left;margin-bottom:16px}
+        .gsr{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.77rem}
+        .gsr:last-child{border-bottom:none}
+        .gsi{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.58rem;font-weight:700;transition:all .3s}
+        .gsi.done{background:var(--sage);border-color:var(--sage);color:#fff}
+        .gsi.cur{background:var(--sage-bg);border-color:var(--sage);color:var(--sage-d)}
+        .gst{color:var(--mid);transition:color .3s}
+        .gsr.done-row .gst{color:var(--dark);font-weight:500}
+        .gen-pb{height:7px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:6px}
+        .gen-pf{height:100%;background:var(--sage);border-radius:4px;width:0%;transition:width .4s ease}
+        .gen-pt{font-size:.68rem;color:var(--mid);text-align:right}
+
+        .result-wrap{animation:fi .3s ease}
+        .res-check{width:50px;height:50px;border-radius:50%;background:rgba(46,125,82,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+        .res-check svg{width:22px;height:22px}
+        .res-t{font-size:.95rem;font-weight:700;text-align:center;margin-bottom:2px}
+        .res-s{font-size:.74rem;color:var(--mid);text-align:center;margin-bottom:16px}
+        .res-prof{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px}
+        .rp-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);font-size:.73rem}
+        .rp-row:last-child{border-bottom:none}
+        .rp-k{color:var(--mid)}
+        .rp-v{font-family:monospace;font-weight:600}
+
+        /* ══════════════════════════════════
+           ANALYTICS
+        ══════════════════════════════════ */
+        .an-top{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
+        .an-c{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+        .an-cl{font-size:.67rem;color:var(--mid);font-weight:500;margin-bottom:2px}
+        .an-cv{font-family:'DM Serif Display',serif;font-size:1.75rem}
+        .an-cd{font-size:.65rem;font-weight:600;margin-top:2px}
+        .an-g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
+        .an-g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:13px}
+        .cb{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+        .cb h4{font-size:.82rem;font-weight:700;font-family:'DM Sans',sans-serif;margin-bottom:13px}
+        .cb canvas{max-height:195px}
+        .mt{width:100%;border-collapse:collapse;font-size:.75rem}
+        .mt th{text-align:left;font-size:.64rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);padding:0 9px 8px;border-bottom:2px solid var(--line)}
+        .mt td{padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:middle}
+        .mt tr:last-child td{border-bottom:none}
+        .mt tr:hover td{background:var(--bg)}
+        .ab{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:3px}
+        .af{height:100%;border-radius:3px;background:var(--sage)}
+        .best-row td{font-weight:600}
+        .imp{font-size:.67rem;font-weight:700;padding:2px 6px;border-radius:50px}
+        .imp-p{background:rgba(46,125,82,.1);color:var(--green)}
+
+        @media(max-width:1100px){.home-hero{grid-template-columns:1fr}.live-panel{display:none}.home-bottom,.alerts-grid,.an-g2,.an-g3{grid-template-columns:1fr}}
+        @media(max-width:768px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}.mon-stats,.an-top,.home-stats{grid-template-columns:1fr 1fr}}
+    </style>
+</head>
+<body>
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo-mark">
+                <!-- shield + pulse cross logo -->
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L4 6v5.5C4 16.75 7.5 21.25 12 22.5C16.5 21.25 20 16.75 20 11.5V6L12 2Z" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.5"/>
+                    <path d="M9 12h2v-2h2v2h2v2h-2v2h-2v-2H9v-2Z" fill="white"/>
+                </svg>
+            </div>
+            <div class="logo-text">
+                <div class="logo-name">MedGuard</div>
+                <div class="logo-tag">IoT Security Platform</div>
+            </div>
+        </div>
+
+        <div class="online-chip"><div class="dot"></div>All Systems Operational</div>
+
+        <nav class="nav">
+            <div class="nav-section">Main</div>
+            <button class="nb active" onclick="showPage('home',this)">
+                <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></span>Overview
+            </button>
+            <button class="nb" onclick="showPage('monitor',this)">
+                <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>Devices
+            </button>
+            <button class="nb" onclick="showPage('alerts',this)">
+                <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>Alerts
+                <span class="nbadge">3</span>
+            </button>
+            <button class="nb" onclick="showPage('mud',this)">
+                <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>MUD Profiles
+            </button>
+            <div class="nav-section">Insights</div>
+            <button class="nb" onclick="showPage('analytics',this)">
+                <span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></span>Analytics
+            </button>
+        </nav>
+
+        <div class="sidebar-foot">
+            <div class="sf-user" style="margin-bottom:10px">
+                <div class="sf-avatar" id="sfAvatar">IT</div>
+                <div><div class="sf-name" id="sfName">IT Security</div><div class="sf-role" id="sfRole">Hospital Admin</div></div>
+            </div>
+            <button onclick="doLogout()" style="width:100%;padding:7px;border-radius:8px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.15);color:#c0392b;font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="topbar">
+            <div class="tb-left">
+                <div class="tb-title" id="tbT">Overview</div>
+                <div class="tb-sub" id="tbS">Hospital IoT Security · SKCT Medical Centre</div>
+            </div>
+            <div class="tb-right">
+                <div class="tb-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span id="liveTime"></span></div>
+                <div class="tb-chip" style="color:var(--green)"><div class="dot"></div>Live</div>
+                <div class="tb-notif">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    <div class="notif-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── OVERVIEW ── -->
+        <div class="page active" id="page-home">
+            <div class="home-hero">
+                <div>
+                    <div class="hero-kicker"><span></span>Real-time Protection · 8 Devices Online</div>
+                    <h1 class="hero-h">Your hospital network,<br/><em>secured automatically.</em></h1>
+                    <p class="hero-p">MedGuard monitors every IoT device on your network 24/7, automatically learns normal behavior, and flags threats — with a clear explanation of what happened and why.</p>
+                    <div class="hero-actions">
+                        <button class="btn bs" onclick="showPage('monitor',document.querySelectorAll('.nb')[1])">View Devices</button>
+                        <button class="btn bg" onclick="showPage('mud',document.querySelectorAll('.nb')[3])">MUD Profiles</button>
+                    </div>
+                    <div class="hero-nums">
+                        <div class="hn"><div class="hn-v">99.4%</div><div class="hn-l">Detection Accuracy</div></div>
+                        <div class="hn"><div class="hn-v">8</div><div class="hn-l">Devices Monitored</div></div>
+                        <div class="hn"><div class="hn-v">3</div><div class="hn-l">Active Alerts</div></div>
+                        <div class="hn"><div class="hn-v">Auto</div><div class="hn-l">Profile Generation</div></div>
+                    </div>
+                </div>
+                <div class="live-panel">
+                    <div class="lp-head"><span class="lp-title">Live Status</span><span class="lp-live"><div class="dot" style="width:5px;height:5px"></div>Live</span></div>
+                    <div class="lp-row"><div><div class="lp-name">ECG Monitor — ICU-03</div><div class="lp-ip">192.168.1.14</div></div><span class="pill ps">Safe</span></div>
+                    <div class="lp-row"><div><div class="lp-name">Insulin Pump — Ward B</div><div class="lp-ip">192.168.1.27</div></div><span class="pill pw">Warning</span></div>
+                    <div class="lp-row"><div><div class="lp-name">BP Monitor — OPD-11</div><div class="lp-ip">192.168.1.39</div></div><span class="pill pt">Threat</span></div>
+                    <div class="lp-row"><div><div class="lp-name">Ventilator — ICU-07</div><div class="lp-ip">192.168.1.52</div></div><span class="pill ps">Safe</span></div>
+                    <div class="lp-row"><div><div class="lp-name">Infusion Pump — OT-2</div><div class="lp-ip">192.168.1.61</div></div><span class="pill ps">Safe</span></div>
+                </div>
+            </div>
+
+            <div class="home-stats">
+                <div class="hsc">
+                    <div class="hsc-ico" style="background:rgba(46,125,82,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><polyline points="9,12 11,14 15,10"/></svg></div>
+                    <div><div class="hsc-v" style="color:var(--green)">5</div><div class="hsc-l">Secure Devices</div></div>
+                </div>
+                <div class="hsc">
+                    <div class="hsc-ico" style="background:rgba(212,132,26,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                    <div><div class="hsc-v" style="color:var(--yellow)">1</div><div class="hsc-l">Warnings</div></div>
+                </div>
+                <div class="hsc">
+                    <div class="hsc-ico" style="background:rgba(192,57,43,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                    <div><div class="hsc-v" style="color:var(--red)">2</div><div class="hsc-l">Threats Detected</div></div>
+                </div>
+                <div class="hsc">
+                    <div class="hsc-ico" style="background:var(--sage-bg)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+                    <div><div class="hsc-v" style="color:var(--sage-d)">8</div><div class="hsc-l">MUD Profiles Active</div></div>
+                </div>
+            </div>
+
+            <div class="home-bottom">
+                <div class="card">
+                    <div class="ch"><h4>Recent Activity</h4><span class="pill pg">Today</span></div>
+                    <div style="padding:4px 16px 12px">
+                        <div class="act-item"><div class="act-dot" style="background:var(--red)"></div><div><div class="act-text"><strong>Threat detected</strong> on BP Monitor — OPD-11<br/>Port scan attack · XGBoost · 88% confidence</div><div class="act-time">2 minutes ago</div></div></div>
+                        <div class="act-item"><div class="act-dot" style="background:var(--red)"></div><div><div class="act-text"><strong>DDoS attack blocked</strong> on X-Ray Machine<br/>CatBoost · 72% confidence</div><div class="act-time">18 minutes ago</div></div></div>
+                        <div class="act-item"><div class="act-dot" style="background:var(--yellow)"></div><div><div class="act-text"><strong>Anomalous traffic</strong> on Insulin Pump — Ward B<br/>RF model flagged unusual packet rate</div><div class="act-time">7 minutes ago</div></div></div>
+                        <div class="act-item"><div class="act-dot" style="background:var(--sage)"></div><div><div class="act-text"><strong>MUD Profile updated</strong> — MRI Scanner<br/>K-Means re-clustering completed</div><div class="act-time">1 hour ago</div></div></div>
+                        <div class="act-item"><div class="act-dot" style="background:var(--green)"></div><div><div class="act-text"><strong>System scan complete</strong> — all 8 devices checked<br/>5 secure · 1 warning · 2 threats</div><div class="act-time">2 hours ago</div></div></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="ch"><h4>Device Summary</h4><button class="btn bg" style="font-size:.72rem;padding:5px 11px" onclick="showPage('monitor',document.querySelectorAll('.nb')[1])">View All</button></div>
+                    <div style="padding:4px 16px 12px">
+                        <div class="device-mini"><div><div class="dm-name">ECG Monitor</div><div class="dm-ip">192.168.1.14 · ICU-03</div></div><span class="pill ps">Safe</span></div>
+                        <div class="device-mini"><div><div class="dm-name">Insulin Pump</div><div class="dm-ip">192.168.1.27 · Ward B</div></div><span class="pill pw">Warning</span></div>
+                        <div class="device-mini"><div><div class="dm-name">BP Monitor</div><div class="dm-ip">192.168.1.39 · OPD-11</div></div><span class="pill pt">Threat</span></div>
+                        <div class="device-mini"><div><div class="dm-name">Ventilator</div><div class="dm-ip">192.168.1.52 · ICU-07</div></div><span class="pill ps">Safe</span></div>
+                        <div class="device-mini"><div><div class="dm-name">X-Ray Machine</div><div class="dm-ip">192.168.1.74 · Radiology</div></div><span class="pill pt">Threat</span></div>
+                        <div class="device-mini"><div><div class="dm-name">MRI Scanner</div><div class="dm-ip">192.168.1.91 · Imaging</div></div><span class="pill ps">Safe</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── DEVICES ── -->
+        <div class="page" id="page-monitor">
+            <div style="margin-bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px">
+                <div><div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage);margin-bottom:3px">Device Management</div><h2 style="font-size:1.7rem">Devices</h2></div>
+            </div>
+            <div class="mon-stats">
+                <div class="msc"><div class="msc-l">Total</div><div class="msc-v" style="color:var(--sage-d)" id="cT">8</div></div>
+                <div class="msc"><div class="msc-l">Secure</div><div class="msc-v" style="color:var(--green)" id="cS">5</div></div>
+                <div class="msc"><div class="msc-l">Warning</div><div class="msc-v" style="color:var(--yellow)" id="cW">1</div></div>
+                <div class="msc"><div class="msc-l">Threats</div><div class="msc-v" style="color:var(--red)" id="cTh">2</div></div>
+            </div>
+            <div class="mon-bar">
+                <div class="ftabs">
+                    <button class="ftab active" onclick="fd('all',this)">All</button>
+                    <button class="ftab" onclick="fd('safe',this)">Secure</button>
+                    <button class="ftab" onclick="fd('warning',this)">Warning</button>
+                    <button class="ftab" onclick="fd('threat',this)">Threat</button>
+                </div>
+                <button class="btn bg" onclick="refDev()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Refresh</button>
+            </div>
+            <div class="dev-grid" id="devGrid"></div>
+        </div>
+
+        <!-- ── ALERTS ── -->
+        <div class="page" id="page-alerts">
+            <div style="margin-bottom:18px">
+                <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage);margin-bottom:3px">Threat Intelligence</div>
+                <h2 style="font-size:1.7rem">Alerts</h2>
+            </div>
+            <div class="alerts-grid">
+                <div class="card">
+                    <div class="ch"><h4>Active Alerts</h4><span class="pill pt">3 Active</span></div>
+                    <div style="padding:11px" id="alertList"></div>
+                </div>
+                <div class="card">
+                    <div class="ch">
+                        <h4>Why was this flagged?</h4>
+                        <span style="font-size:.68rem;color:var(--mid)">AI Explanation</span>
+                    </div>
+                    <div class="shap-panel" id="shapPanel">
+                        <!-- verdict -->
+                        <div class="verdict-card threat" id="verdictCard">
+                            <div class="verdict-ico threat" id="verdictIco">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            </div>
+                            <div>
+                                <div class="verdict-label threat" id="verdictLabel">Threat Detected</div>
+                                <div class="verdict-title" id="verdictTitle">BP Monitor — OPD-11</div>
+                                <div class="verdict-sub" id="verdictSub">This device is behaving abnormally. Immediate attention required.</div>
+                            </div>
+                        </div>
+                        <!-- risk meter -->
+                        <div class="risk-wrap">
+                            <div class="risk-label-row">
+                                <span class="risk-label">Risk Level</span>
+                                <span class="risk-pct" id="riskPct" style="color:var(--red)">88%</span>
+                            </div>
+                            <div class="risk-track">
+                                <div class="risk-fill" id="riskFill" style="width:88%;background:var(--red)"></div>
+                            </div>
+                            <div class="risk-scale"><span>Low</span><span>Medium</span><span>High</span><span>Critical</span></div>
+                        </div>
+                        <!-- plain english -->
+                        <div class="plain-summary">
+                            <div class="plain-summary-title">&#128270; What happened?</div>
+                            <p id="plainText">The BP Monitor at OPD-11 sent an unusually large number of connection requests to unfamiliar ports. This matches the pattern of a Port Scan attack — where someone probes the device to find security weaknesses.</p>
+                        </div>
+                        <!-- factors -->
+                        <div class="factors-title">&#128200; Key Factors</div>
+                        <div id="factorsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── MUD PROFILES ── -->
+        <div class="page" id="page-mud">
+            <div style="margin-bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px">
+                <div><div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage);margin-bottom:3px">Auto-Generated · K-Means Clustering</div><h2 style="font-size:1.7rem">MUD Profiles</h2></div>
+            </div>
+            <div class="mud-bar">
+                <input class="mud-search" type="text" placeholder="Search devices…" oninput="filterMud(this.value)"/>
+                <div style="display:flex;align-items:center;gap:9px">
+                    <span style="font-size:.75rem;color:var(--mid)" id="mudCount">8 profiles</span>
+                    <button class="btn bs" onclick="openModal()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        Add Device
+                    </button>
+                </div>
+            </div>
+            <div class="mud-grid" id="mudGrid"></div>
+        </div>
+
+        <!-- ── ANALYTICS ── -->
+        <div class="page" id="page-analytics">
+            <div style="margin-bottom:18px">
+                <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sage);margin-bottom:3px">Performance & Insights</div>
+                <h2 style="font-size:1.7rem">Analytics</h2>
+            </div>
+            <div class="an-top">
+                <div class="an-c"><div class="an-cl">Best Accuracy</div><div class="an-cv" style="color:var(--sage-d)">99.4%</div><div class="an-cd" style="color:var(--green)">↑ +1.6% with MUD</div></div>
+                <div class="an-c"><div class="an-cl">Avg F1 Score</div><div class="an-cv" style="color:var(--green)">97.3%</div><div class="an-cd" style="color:var(--green)">↑ +1.8% improvement</div></div>
+                <div class="an-c"><div class="an-cl">Threats Today</div><div class="an-cv" style="color:var(--red)">3</div><div class="an-cd" style="color:var(--red)">Last 24 hours</div></div>
+                <div class="an-c"><div class="an-cl">False Positive Rate</div><div class="an-cv" style="color:var(--yellow)">0.6%</div><div class="an-cd" style="color:var(--green)">↓ Reduced with MUD</div></div>
+            </div>
+            <div class="an-g2">
+                <div class="cb"><h4>Model Accuracy — With vs Without MUD</h4><canvas id="cAcc"></canvas></div>
+                <div class="cb"><h4>Attack Type Distribution</h4><canvas id="cAtk"></canvas></div>
+            </div>
+            <div class="an-g3">
+                <div class="cb"><h4>Network Traffic · 24h</h4><canvas id="cTraf"></canvas></div>
+                <div class="cb"><h4>Device Status</h4><canvas id="cStat"></canvas></div>
+                <div class="cb"><h4>MUD Profile Coverage</h4><canvas id="cMud"></canvas></div>
+            </div>
+            <div class="cb" style="margin-bottom:0">
+                <h4>Model Performance</h4>
+                <table class="mt" id="mTable"></table>
+            </div>
+        </div>
+
+    </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ADD DEVICE MODAL -->
+<div class="overlay" id="overlay" onclick="oOut(event)">
+    <div class="modal">
+        <div class="modal-head">
+            <h3 id="mTitle">New Device Detected</h3>
+            <button class="mc-btn" onclick="closeM()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="mstep active" id="s1">
+                <p style="font-size:.79rem;color:var(--mid);margin-bottom:13px">Select a device from the network scan to generate its MUD profile.</p>
+                <div class="nd-list" id="ndList"></div>
+                <div class="ma">
+                    <button class="btn bg" onclick="closeM()">Cancel</button>
+                    <button class="btn bs" id="genBtn" disabled onclick="startGen()">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+                        Generate Profile
+                    </button>
+                </div>
+            </div>
+            <div class="mstep" id="s2">
+                <div class="gen-wrap">
+                    <div class="gen-name" id="gName"></div>
+                    <div class="gen-ip" id="gIp"></div>
+                    <div class="gen-ring">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                        <div class="gen-spin" id="gSpin"></div>
+                    </div>
+                    <div class="gen-steps" id="gSteps"></div>
+                    <div class="gen-pb"><div class="gen-pf" id="gProg"></div></div>
+                    <div class="gen-pt" id="gProgTxt">0%</div>
+                </div>
+            </div>
+            <div class="mstep" id="s3">
+                <div class="result-wrap">
+                    <div class="res-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></div>
+                    <div class="res-t">Profile Generated</div>
+                    <div class="res-s" id="rSub"></div>
+                    <div class="res-prof" id="rProf"></div>
+                </div>
+                <div class="ma" style="margin-top:16px">
+                    <button class="btn bg" onclick="closeM()">Close</button>
+                    <button class="btn bs" id="addBtn" onclick="addDevice()">Add to Network</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="confirm-overlay" id="confirmOverlay" onclick="cancelDel(event)">
+    <div class="confirm-box">
+        <div class="confirm-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg></div>
+        <div class="confirm-title">Remove Device?</div>
+        <div class="confirm-sub">This will remove <span class="confirm-device" id="confirmDevName">this device</span> from the network monitor and delete its MUD profile.<br/>This action cannot be undone.</div>
+        <div class="confirm-actions">
+            <button class="btn bg" onclick="cancelDel()">Cancel</button>
+            <button class="btn" style="background:var(--red);color:white" onclick="confirmDel()">Yes, Remove Device</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* NAV */
+    const pInfo={
+        home:     ['Overview',     'Hospital IoT Security · SKCT Medical Centre'],
+        monitor:  ['Devices',      'Hospital IoT Security · SKCT Medical Centre'],
+        alerts:   ['Alerts',       'Hospital IoT Security · SKCT Medical Centre'],
+        mud:      ['MUD Profiles', 'Hospital IoT Security · SKCT Medical Centre'],
+        analytics:['Analytics',    'Hospital IoT Security · SKCT Medical Centre'],
+    };
+    function showPage(id,btn){
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+        document.getElementById('page-'+id).classList.add('active');
+        if(btn)btn.classList.add('active');
+        document.getElementById('tbT').textContent=pInfo[id][0];
+        if(id==='analytics')setTimeout(initCharts,80);
+    }
+    function tick(){document.getElementById('liveTime').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+    setInterval(tick,1000);tick();
+
+    /* DEVICES */
+    let devs=[
+        {id:'d1',name:'ECG Monitor',    loc:'ICU-03',    ip:'192.168.1.14',status:'safe',   model:'XGBoost', pkt:1240,ano:0},
+        {id:'d2',name:'Insulin Pump',   loc:'Ward B',    ip:'192.168.1.27',status:'warning',model:'RF',      pkt:876, ano:3},
+        {id:'d3',name:'BP Monitor',     loc:'OPD-11',    ip:'192.168.1.39',status:'threat', model:'XGBoost', pkt:534, ano:12},
+        {id:'d4',name:'Ventilator',     loc:'ICU-07',    ip:'192.168.1.52',status:'safe',   model:'CatBoost',pkt:2103,ano:0},
+        {id:'d5',name:'Infusion Pump',  loc:'OT-2',      ip:'192.168.1.61',status:'safe',   model:'MLP',     pkt:319, ano:0},
+        {id:'d6',name:'X-Ray Machine',  loc:'Radiology', ip:'192.168.1.74',status:'threat', model:'CatBoost',pkt:408, ano:8},
+        {id:'d7',name:'Pulse Oximeter', loc:'Ward C',    ip:'192.168.1.83',status:'safe',   model:'KNN',     pkt:962, ano:0},
+        {id:'d8',name:'MRI Scanner',    loc:'Imaging',   ip:'192.168.1.91',status:'safe',   model:'SVM',     pkt:1780,ano:1},
+    ];
+    const si={
+        safe:   `<svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><polyline points="9,12 11,14 15,10"/></svg>`,
+        warning:`<svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16" r=".9" fill="var(--yellow)"/></svg>`,
+        threat: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    };
+    const sl={safe:'Secure',warning:'Warning',threat:'Threat'};
+    function renderDev(f='all'){
+        document.getElementById('devGrid').innerHTML=devs.filter(d=>f==='all'||d.status===f).map(d=>`
+    <div class="dc ${d.status}" id="dc-${d.id}">
+      <div class="dc-top"><div class="dc-ico">${si[d.status]}</div><span class="pill p${d.status==='safe'?'s':d.status==='warning'?'w':'t'}">${sl[d.status]}</span></div>
+      <div class="dc-name">${d.name}</div><div class="dc-loc">${d.loc}</div>
+      <div class="dc-ip">${d.ip}</div>
+      <div class="dc-ns"><div><div class="dc-nv">${d.pkt.toLocaleString()}</div><div class="dc-nk">Packets</div></div><div><div class="dc-nv">${d.ano}</div><div class="dc-nk">Anomalies</div></div></div>
+      <div class="dc-ft">
+        <span class="mtag">${d.model}</span>
+        <div class="del-btn" onclick="askDel('${d.id}','${d.name}','device')" title="Remove device">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>
+        </div>
+      </div>
+    </div>`).join('');
+    }
+    function fd(f,b){document.querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderDev(f);}
+    function refDev(){devs.forEach(d=>{if(d.status==='safe')d.pkt+=Math.floor(Math.random()*60+10);});renderDev('all');document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));document.querySelector('.ftab').classList.add('active');}
+
+    /* ALERTS */
+    let alts=[
+        {id:'bp',    dev:'BP Monitor — OPD-11',      t:'2m ago', type:'Port Scan',         model:'XGBoost', sev:88,lvl:'threat'},
+        {id:'ins',   dev:'Insulin Pump — Ward B',     t:'7m ago', type:'Anomalous Traffic', model:'RF',      sev:54,lvl:'warning'},
+        {id:'xray',  dev:'X-Ray Machine — Radiology', t:'18m ago',type:'DDoS Attack',       model:'CatBoost',sev:72,lvl:'threat'},
+    ];
+    const sd={
+        bp:  [{f:'dst_port',v:.42,d:'pos'},{f:'pkt_size',v:.31,d:'pos'},{f:'flow_duration',v:.19,d:'pos'},{f:'protocol_type',v:.14,d:'pos'},{f:'src_bytes',v:-.08,d:'neg'},{f:'tcp_flags',v:-.12,d:'neg'}],
+        ins: [{f:'pkt_rate',v:.28,d:'pos'},{f:'flow_duration',v:.21,d:'pos'},{f:'dst_ip',v:.16,d:'pos'},{f:'src_bytes',v:-.10,d:'neg'},{f:'protocol_type',v:-.06,d:'neg'},{f:'dst_port',v:-.04,d:'neg'}],
+        xray:[{f:'pkt_rate',v:.55,d:'pos'},{f:'syn_count',v:.38,d:'pos'},{f:'flow_duration',v:.22,d:'pos'},{f:'dst_port',v:.11,d:'pos'},{f:'src_bytes',v:-.07,d:'neg'},{f:'tcp_flags',v:-.15,d:'neg'}],
+    };
+    function renderAlts(){
+        document.getElementById('alertList').innerHTML=alts.map(a=>`
+    <div class="ai ${a.id==='bp'?'sel':''}" id="al-${a.id}" onclick="pickAlt('${a.id}')">
+      <div class="ai-top"><span class="ai-dev">${a.dev}</span><span class="ai-time">${a.t}</span></div>
+      <div class="ai-type"><strong>${a.type}</strong> · ${a.model}</div>
+      <div class="ai-sev">
+        <div class="sv-bar"><div class="sv-fill" style="width:${a.sev}%;background:${a.lvl==='threat'?'var(--red)':'var(--yellow)'}"></div></div>
+        <span class="sv-pct" style="color:${a.lvl==='threat'?'var(--red)':'var(--yellow)'}">${a.sev}%</span>
+        <span class="pill p${a.lvl==='threat'?'t':'w'}">${a.lvl==='threat'?'Critical':'Warning'}</span>
+      </div>
+    </div>`).join('');
+    }
+    /* Human-readable labels for technical feature names */
+    const featureLabels={
+        'dst_port':      {name:'Destination Port',     desc:'Which door on the device was knocked'},
+        'pkt_size':      {name:'Packet Size',          desc:'How large the data packets were'},
+        'pkt_rate':      {name:'Packet Rate',          desc:'How fast data was being sent'},
+        'flow_duration': {name:'Connection Duration',  desc:'How long the connection lasted'},
+        'protocol_type': {name:'Protocol Type',        desc:'The communication language used'},
+        'src_bytes':     {name:'Data Sent',            desc:'Amount of data sent from the device'},
+        'tcp_flags':     {name:'Connection Flags',     desc:'Special signals in the connection'},
+        'dst_ip':        {name:'Destination Address',  desc:'Where the device was trying to connect'},
+        'syn_count':     {name:'Connection Attempts',  desc:'Number of times it tried to connect'},
+        'info_len':      {name:'Message Length',       desc:'Length of network messages'},
+    };
+
+    const plainTextMap={
+        'ddos':      'This device is being flooded with an overwhelming volume of network requests. This is a DDoS (Distributed Denial of Service) attack designed to crash or disable the device.',
+        'port_scan': 'This device received a large number of connection attempts to different ports. This is a Port Scan — an attacker probing the device to find security weaknesses to exploit.',
+        'arp':       'An ARP Spoofing attack was detected. An attacker is pretending to be a trusted device on the network to intercept the data being sent to and from this device.',
+        'dos':       'This device is being targeted by a Denial of Service attack — a flood of traffic designed to overwhelm the device and make it unresponsive to medical staff.',
+        'smurf':     'A Smurf Attack was detected — a large volume of ICMP ping requests are being broadcast across the network, all targeting this device, potentially crashing it.',
+        'bp':        'The BP Monitor sent an unusually large number of connection requests to unfamiliar ports — a pattern matching a Port Scan attack.',
+        'ins':       'The Insulin Pump is sending data at an abnormal rate to unexpected destinations — suggesting unauthorized access.',
+        'xray':      'The X-Ray Machine is being flooded with connection requests — a classic DDoS attack pattern.',
+    };
+
+    function pickAlt(id){
+        document.querySelectorAll('.ai').forEach(e=>e.classList.remove('sel'));
+        document.getElementById('al-'+id).classList.add('sel');
+        const a=alts.find(x=>x.id===id);
+        const lvl=a.lvl;
+        const color=lvl==='threat'?'var(--red)':lvl==='warning'?'var(--yellow)':'var(--green)';
+
+        /* verdict card */
+        const vc=document.getElementById('verdictCard');
+        vc.className='verdict-card '+lvl;
+        document.getElementById('verdictIco').className='verdict-ico '+lvl;
+        document.getElementById('verdictIco').innerHTML=lvl==='threat'
+            ?'<svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+            :'<svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2.2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16" r=".9" fill="var(--yellow)"/></svg>';
+        document.getElementById('verdictLabel').className='verdict-label '+lvl;
+        document.getElementById('verdictLabel').textContent=lvl==='threat'?'Threat Detected':'Warning';
+        document.getElementById('verdictTitle').textContent=a.dev;
+        document.getElementById('verdictSub').textContent=lvl==='threat'
+            ?'This device is behaving abnormally. Immediate attention required.'
+            :'This device shows unusual activity. Monitor closely.';
+
+        /* risk meter */
+        document.getElementById('riskPct').textContent=a.sev+'%';
+        document.getElementById('riskPct').style.color=color;
+        document.getElementById('riskFill').style.width=a.sev+'%';
+        document.getElementById('riskFill').style.background=color;
+
+        /* plain english */
+        document.getElementById('plainText').textContent=plainTextMap[id]||'This device is showing unusual network behavior that does not match its normal MUD profile.';
+
+        /* factors — fetch real SHAP from API */
+        document.getElementById('factorsList').innerHTML='<div style="text-align:center;padding:16px;color:var(--mid);font-size:.78rem">Loading explanation...</div>';
+        fetch(`/api/shap/${id}`)
+            .then(r=>r.json())
+            .then(data=>{
+                if(!data.success)return;
+                const fs=data.shap.features;
+                const mx=Math.max(...fs.map(f=>Math.abs(f.value)));
+                document.getElementById('factorsList').innerHTML=fs.map(f=>{
+                    const pct=Math.round(Math.abs(f.value)/mx*100);
+                    const isRisk=f.direction==='pos';
+                    const emoji=isRisk?'🔴':'🟢';
+                    return `
+        <div class="factor-row">
+          <div class="factor-icon ${isRisk?'risk':'safe'}">${emoji}</div>
+          <div style="flex:1">
+            <div class="factor-name">${f.label||f.feature}</div>
+            <div class="factor-desc">${f.desc||''} — ${isRisk?'pushing toward threat':'reducing risk'}</div>
+          </div>
+          <div class="factor-bar-wrap">
+            <div class="factor-bar-track"><div class="factor-bar-fill ${isRisk?'risk':'safe'}" style="width:${pct}%"></div></div>
+            <div class="factor-impact" style="color:${isRisk?'var(--red)':'var(--sage)'}">${isRisk?'↑ Risk':'↓ Safe'}</div>
+          </div>
+        </div>`;
+                }).join('');
+            })
+            .catch(()=>{
+                document.getElementById('factorsList').innerHTML='<div style="color:var(--mid);font-size:.78rem;padding:8px">Could not load explanation.</div>';
+            });
+    }
+
+    /* MUD */
+    let muds=[
+        {name:'ECG Monitor',    ip:'192.168.1.14',loc:'ICU-03',    cl:2,gw:'10.0.0.1',ports:'80,443',   proto:'TCP',    size:'64–512 B',  rate:'Low',  ts:'2025-03-01 09:14',cov:94},
+        {name:'Insulin Pump',   ip:'192.168.1.27',loc:'Ward B',    cl:1,gw:'10.0.0.1',ports:'8080',     proto:'TCP',    size:'32–256 B',  rate:'Low',  ts:'2025-03-01 09:16',cov:88},
+        {name:'BP Monitor',     ip:'192.168.1.39',loc:'OPD-11',    cl:3,gw:'10.0.0.1',ports:'443',      proto:'TCP',    size:'64–512 B',  rate:'Med',  ts:'2025-03-01 09:18',cov:91},
+        {name:'Ventilator',     ip:'192.168.1.52',loc:'ICU-07',    cl:0,gw:'10.0.0.2',ports:'8443',     proto:'TCP',    size:'512–1024 B',rate:'Med',  ts:'2025-03-01 09:20',cov:97},
+        {name:'Infusion Pump',  ip:'192.168.1.61',loc:'OT-2',      cl:1,gw:'10.0.0.2',ports:'80',       proto:'TCP',    size:'32–128 B',  rate:'Low',  ts:'2025-03-01 09:22',cov:93},
+        {name:'X-Ray Machine',  ip:'192.168.1.74',loc:'Radiology', cl:4,gw:'10.0.0.3',ports:'21,80',    proto:'TCP/UDP',size:'1024–4096 B',rate:'High', ts:'2025-03-01 09:24',cov:86},
+        {name:'Pulse Oximeter', ip:'192.168.1.83',loc:'Ward C',    cl:0,gw:'10.0.0.1',ports:'443',      proto:'TCP',    size:'32–64 B',   rate:'Low',  ts:'2025-03-01 09:26',cov:96},
+        {name:'MRI Scanner',    ip:'192.168.1.91',loc:'Imaging',   cl:5,gw:'10.0.0.3',ports:'8080,8443',proto:'TCP',    size:'4096+ B',   rate:'High', ts:'2025-03-01 09:28',cov:92},
+    ];
+    function renderMud(list=muds){
+        document.getElementById('mudCount').textContent=`${list.length} profile${list.length!==1?'s':''}`;
+        document.getElementById('mudGrid').innerHTML=list.map(p=>`
+    <div class="mud-card">
+      <div class="mud-ch">
+        <div class="mud-di"><div class="mud-ic">${si.safe}</div><div><div class="mud-dn">${p.name}</div><div class="mud-dip">${p.ip}</div></div></div>
+        <span class="pill pg">Cluster ${p.cl}</span>
+      </div>
+      <div class="mud-body">
+        <div class="mud-row"><span class="mud-k">Location</span><span class="mud-v">${p.loc}</span></div>
+        <div class="mud-row"><span class="mud-k">Gateway</span><span class="mud-v">${p.gw}</span></div>
+        <div class="mud-row"><span class="mud-k">Allowed Ports</span><span class="mud-v">${p.ports}</span></div>
+        <div class="mud-row"><span class="mud-k">Protocol</span><span class="mud-v">${p.proto}</span></div>
+        <div class="mud-row"><span class="mud-k">Packet Size</span><span class="mud-v">${p.size}</span></div>
+        <div class="mud-row"><span class="mud-k">Traffic Rate</span><span class="mud-v">${p.rate}</span></div>
+        <div class="mud-cov">
+          <div class="mud-cov-l">Coverage · ${p.cov}%</div>
+          <div class="mud-cov-track"><div class="mud-cov-fill" style="width:${p.cov}%"></div></div>
+        </div>
+      </div>
+      <div class="mud-ft">
+        <span>${p.ts}</span>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="pill ps">Active</span>
+          <div class="del-btn" onclick="askDel('${p.ip}','${p.name}','mud')" title="Remove profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+    }
+    function filterMud(q){const r=q.trim().toLowerCase();renderMud(r?muds.filter(p=>p.name.toLowerCase().includes(r)||p.ip.includes(r)||p.loc.toLowerCase().includes(r)):muds);}
+
+    /* MODAL */
+    const newDevs=[
+        {name:'Cardiac Monitor',    ip:'192.168.1.102',loc:'ICU-09',    type:'Monitoring'},
+        {name:'Smart Thermometer',  ip:'192.168.1.107',loc:'Ward D',    type:'Diagnostic'},
+        {name:'Defibrillator',      ip:'192.168.1.115',loc:'Emergency', type:'Treatment'},
+        {name:'CT Scanner',         ip:'192.168.1.120',loc:'Radiology', type:'Imaging'},
+        {name:'Ultrasound Machine', ip:'192.168.1.131',loc:'OB-GYN',   type:'Imaging'},
+        {name:'Patient Monitor',    ip:'192.168.1.138',loc:'Ward E',    type:'Monitoring'},
+        {name:'Dialysis Machine',   ip:'192.168.1.144',loc:'Nephrology',type:'Treatment'},
+        {name:'Anesthesia Machine', ip:'192.168.1.151',loc:'OT-3',      type:'Treatment'},
+    ];
+    let picked=null;
+    function openModal(){
+        picked=null;
+        goS(1);
+        document.getElementById('mTitle').textContent='New Device Detected';
+        document.getElementById('ndList').innerHTML=newDevs.map((d,i)=>`
+    <div class="nd-row" id="nr-${i}" onclick="pickND(${i})">
+      <div class="nd-ico">${si.safe}</div>
+      <div><div class="nd-name">${d.name}</div><div class="nd-meta">${d.ip} · ${d.loc} · ${d.type}</div></div>
+      <div class="nd-pick" id="np-${i}"></div>
+    </div>`).join('');
+        document.getElementById('genBtn').disabled=true;
+        document.getElementById('overlay').classList.add('open');
+    }
+    function closeM(){document.getElementById('overlay').classList.remove('open');}
+    function oOut(e){if(e.target===document.getElementById('overlay'))closeM();}
+    function goS(n){document.querySelectorAll('.mstep').forEach(s=>s.classList.remove('active'));document.getElementById('s'+n).classList.add('active');}
+    function pickND(i){
+        document.querySelectorAll('.nd-row').forEach(r=>r.classList.remove('sel'));
+        document.querySelectorAll('[id^=np-]').forEach(d=>d.classList.remove('sel'));
+        document.getElementById('nr-'+i).classList.add('sel');
+        document.getElementById('np-'+i).classList.add('sel');
+        picked=newDevs[i];
+        document.getElementById('genBtn').disabled=false;
+    }
+    const gSteps=['Capturing traffic samples…','Applying K-Means clustering…','Identifying behavior cluster…','Extracting allowed ports…','Calculating packet boundaries…','Generating MUD profile…','Validating profile…'];
+    let gTimer=null;
+    function startGen(){
+        if(!picked)return;
+        goS(2);
+        document.getElementById('mTitle').textContent='Generating Profile';
+        document.getElementById('gName').textContent=picked.name;
+        document.getElementById('gIp').textContent=picked.ip+' · '+picked.loc;
+        document.getElementById('gSteps').innerHTML=gSteps.map((s,i)=>`
+    <div class="gsr" id="gr-${i}"><div class="gsi" id="gi-${i}">${i+1}</div><span class="gst">${s}</span></div>`).join('');
+        document.getElementById('gProg').style.width='0%';
+        document.getElementById('gProgTxt').textContent='0%';
+        let step=0;
+        function nx(){
+            if(step>0){document.getElementById('gi-'+(step-1)).classList.remove('cur');document.getElementById('gi-'+(step-1)).classList.add('done');document.getElementById('gi-'+(step-1)).textContent='✓';document.getElementById('gr-'+(step-1)).classList.add('done-row');}
+            if(step<gSteps.length){
+                document.getElementById('gi-'+step).classList.add('cur');
+                const p=Math.round((step+1)/gSteps.length*100);
+                document.getElementById('gProg').style.width=p+'%';
+                document.getElementById('gProgTxt').textContent=p+'%';
+                step++;gTimer=setTimeout(nx,620);
+            }else{
+                document.getElementById('gSpin').style.display='none';
+                // Small delay so user sees 100% before profile loads
+                setTimeout(showResult, 400);
+            }
+        }
+        nx();
+    }
+    function showResult(){
+        // Show step 3 immediately, disable Add button until API responds
+        goS(3);
+        document.getElementById('mTitle').textContent='Profile Ready';
+        document.getElementById('rSub').textContent='Generating profile, please wait...';
+        document.getElementById('rProf').innerHTML='<div style="text-align:center;padding:20px;color:var(--mid);font-size:.8rem">⏳ Connecting to server...</div>';
+        const addBtn=document.getElementById('addBtn');
+        addBtn.disabled=true;
+        addBtn.textContent='Please wait...';
+        addBtn.style.opacity='0.6';
+
+        fetch('/api/mud/generate',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({name:picked.name,ip:picked.ip,loc:picked.loc})
+        })
+            .then(r=>r.json())
+            .then(data=>{
+                if(data.success){
+                    const p=data.profile;
+                    const dv=data.device;
+                    picked._g=p;
+                    picked._dev=dv;
+                    document.getElementById('rSub').textContent=`${p.name} (${p.ip}) — ${p.coverage}% profile coverage`;
+                    document.getElementById('rProf').innerHTML=[
+                        ['Device',p.name],['IP',p.ip],['Location',p.loc],
+                        ['Cluster','Cluster '+p.cluster],['Gateway',p.gateway],
+                        ['Ports',p.ports],['Protocol',p.protocol],
+                        ['Packet Size',p.pkt_size],['Traffic Rate',p.rate],
+                        ['Coverage',p.coverage+'%']
+                    ].map(([k,v])=>`<div class="rp-row"><span class="rp-k">${k}</span><span class="rp-v">${v}</span></div>`).join('');
+                    // Enable Add button only when data is ready
+                    addBtn.disabled=false;
+                    addBtn.textContent='Add to Network';
+                    addBtn.style.opacity='1';
+                } else {
+                    document.getElementById('rSub').textContent='Failed to generate profile. Try again.';
+                    document.getElementById('rProf').innerHTML='';
+                    addBtn.textContent='Retry';
+                    addBtn.disabled=false;
+                    addBtn.style.opacity='1';
+                }
+            })
+            .catch(err=>{
+                console.error('Generate error:',err);
+                document.getElementById('rSub').textContent='Server error. Make sure Flask is running.';
+                document.getElementById('rProf').innerHTML='';
+                addBtn.textContent='Retry';
+                addBtn.disabled=false;
+                addBtn.style.opacity='1';
+            });
+    }
+
+    function addDevice(){
+        if(!picked||!picked._g||!picked._dev){
+            alert('Profile not ready yet. Please wait a moment.');
+            return;
+        }
+        const p=picked._g;
+        const dv=picked._dev;
+        muds.push({name:p.name,ip:p.ip,loc:p.loc,cl:p.cluster,gw:p.gateway,ports:p.ports,proto:p.protocol,size:p.pkt_size,rate:p.rate,ts:p.timestamp,cov:p.coverage});
+        devs.push({id:dv.id,name:dv.name,loc:dv.loc,ip:dv.ip,status:dv.status,model:dv.model,pkt:dv.packets,ano:dv.anomalies});
+        updateCounters();
+        renderMud();renderDev();closeM();
+        document.getElementById('gSpin').style.display='block';
+        // Reset Add button for next use
+        const addBtn=document.getElementById('addBtn');
+        if(addBtn){addBtn.disabled=false;addBtn.textContent='Add to Network';addBtn.style.opacity='1';}
+    }
+
+    /* CHARTS */
+    let ci=false;
+    function initCharts(){
+        if(ci)return;ci=true;
+        const s='#8A9A5B',sl='rgba(138,154,91,.18)',r='#c0392b',y='#d4841a',g='#2e7d52',gr='rgba(0,0,0,.05)';
+        const f={family:'DM Sans,sans-serif',size:11};
+        const base={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font:f,boxWidth:9,padding:10}}}};
+        new Chart(document.getElementById('cAcc'),{type:'bar',data:{labels:['XGBoost','RF','CatBoost','MLP','SVM','KNN','LR'],datasets:[{label:'With MUD',data:[99.4,98.9,98.7,97.6,96.3,95.8,93.2],backgroundColor:s,borderRadius:4,barPercentage:.5},{label:'Without MUD',data:[97.8,97.2,97.0,94.8,95.1,94.5,92.0],backgroundColor:'#bbb',borderRadius:4,barPercentage:.5}]},options:{...base,scales:{y:{min:90,ticks:{font:f},grid:{color:gr}},x:{ticks:{font:f},grid:{display:false}}}}});
+        new Chart(document.getElementById('cAtk'),{type:'doughnut',data:{labels:['Port Scan','DDoS','Anomalous','Exfiltration'],datasets:[{data:[38,27,22,13],backgroundColor:[r,y,s,'#999'],borderWidth:0,hoverOffset:5}]},options:{...base,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:f,boxWidth:9,padding:12}}}}});
+        const hrs=['00','02','04','06','08','10','12','14','16','18','20','22'];
+        new Chart(document.getElementById('cTraf'),{type:'line',data:{labels:hrs,datasets:[{label:'Normal',data:[820,610,540,890,1340,1760,2100,1980,2240,2060,1580,1020],borderColor:s,backgroundColor:sl,tension:.4,fill:true,pointRadius:2,borderWidth:2},{label:'Anomalous',data:[12,8,6,14,22,18,35,28,19,42,24,16],borderColor:r,backgroundColor:'rgba(192,57,43,.1)',tension:.4,fill:true,pointRadius:2,borderWidth:2}]},options:{...base,scales:{y:{ticks:{font:f},grid:{color:gr}},x:{ticks:{font:f},grid:{display:false}}}}});
+        new Chart(document.getElementById('cStat'),{type:'pie',data:{labels:['Secure','Warning','Threat'],datasets:[{data:[5,1,2],backgroundColor:[g,y,r],borderWidth:0,hoverOffset:4}]},options:{...base,plugins:{legend:{position:'bottom',labels:{font:f,boxWidth:9,padding:11}}}}});
+        new Chart(document.getElementById('cMud'),{type:'bar',data:{labels:['ECG','Insulin','BP','Vent.','Infusion','X-Ray','PulseOx','MRI'],datasets:[{label:'Coverage %',data:[94,88,91,97,93,86,96,92],backgroundColor:s,borderRadius:4,barPercentage:.6}]},options:{...base,indexAxis:'y',scales:{x:{min:80,max:100,ticks:{font:f},grid:{color:gr}},y:{ticks:{font:f},grid:{display:false}}},plugins:{legend:{display:false}}}});
+        const md=[{n:'XGBoost',a:99.4,p:99.1,r:99.6,f1:99.3,nm:97.8,b:true},{n:'Random Forest',a:98.9,p:98.5,r:99.1,f1:98.8,nm:97.2,b:false},{n:'CatBoost',a:98.7,p:98.3,r:98.9,f1:98.6,nm:97.0,b:false},{n:'MLP',a:97.6,p:97.2,r:97.9,f1:97.5,nm:94.8,b:false},{n:'SVM',a:96.3,p:96.0,r:96.5,f1:96.2,nm:95.1,b:false},{n:'KNN',a:95.8,p:95.4,r:96.0,f1:95.7,nm:94.5,b:false},{n:'Logistic Reg.',a:93.2,p:92.8,r:93.5,f1:93.1,nm:92.0,b:false}];
+        document.getElementById('mTable').innerHTML=`<thead><tr><th>Model</th><th>Accuracy</th><th>Without MUD</th><th>Gain</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead><tbody>${md.map(m=>`<tr class="${m.b?'best-row':''}"><td>${m.n}${m.b?' <span class="pill pg" style="font-size:.6rem">Best</span>':''}</td><td><strong>${m.a}%</strong><div class="ab"><div class="af" style="width:${(m.a-90)*10}%"></div></div></td><td>${m.nm}%</td><td><span class="imp imp-p">+${(m.a-m.nm).toFixed(1)}%</span></td><td>${m.p}%</td><td>${m.r}%</td><td>${m.f1}%</td></tr>`).join('')}</tbody>`;
+    }
+
+    /* ── DELETE LOGIC ── */
+    let delTarget={id:null,name:null,type:null};
+
+    function askDel(id,name,type){
+        event.stopPropagation();
+        delTarget={id,name,type};
+        document.getElementById('confirmDevName').textContent=name;
+        document.getElementById('confirmOverlay').classList.add('open');
+    }
+    function cancelDel(e){
+        if(!e||e.target===document.getElementById('confirmOverlay'))
+            document.getElementById('confirmOverlay').classList.remove('open');
+    }
+    function confirmDel(){
+        document.getElementById('confirmOverlay').classList.remove('open');
+        const {id,name,type}=delTarget;
+
+        if(type==='device'){
+            // DELETE device from Flask (also deletes its MUD profile server-side)
+            fetch(`/api/devices/${id}`,{method:'DELETE'})
+                .then(r=>r.json())
+                .then(data=>{
+                    if(data.success){
+                        devs=devs.filter(d=>d.id!==id);
+                        muds=muds.filter(m=>m.name!==name);
+                        updateCounters();
+                        renderDev('all');
+                        renderMud();
+                        document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+                        document.querySelector('.ftab').classList.add('active');
+                    }
+                })
+                .catch(err=>console.error('Delete error:',err));
+        }
+
+        if(type==='mud'){
+            // DELETE mud profile from Flask using IP as key
+            fetch(`/api/mud/${id}`,{method:'DELETE'})
+                .then(r=>r.json())
+                .then(data=>{
+                    if(data.success){
+                        muds=muds.filter(m=>m.ip!==id);
+                        renderMud();
+                    }
+                })
+                .catch(err=>console.error('Delete MUD error:',err));
+        }
+
+        delTarget={id:null,name:null,type:null};
+    }
+
+    function updateCounters(){
+        document.getElementById('cT').textContent=devs.length;
+        document.getElementById('cS').textContent=devs.filter(d=>d.status==='safe').length;
+        document.getElementById('cW').textContent=devs.filter(d=>d.status==='warning').length;
+        document.getElementById('cTh').textContent=devs.filter(d=>d.status==='threat').length;
+    }
+
+    /* ── INIT — fetch from Flask API ── */
+    async function loadUser(){
+        try{
+            const r=await fetch('/api/me');
+            const d=await r.json();
+            if(d.success){
+                const u=d.user;
+                document.getElementById('sfName').textContent=u.name;
+                document.getElementById('sfRole').textContent=u.role_label||u.role;
+                document.getElementById('sfAvatar').textContent=u.name.charAt(0).toUpperCase();
+
+                // Role-based access control
+                const isAdmin = u.role==='admin';
+
+                // Both admin and itstaff see everything
+                // Only difference: Admin sees a special badge
+                if(isAdmin){
+                    document.getElementById('sfAvatar').style.background='rgba(138,154,91,.3)';
+                    document.getElementById('sfAvatar').style.borderColor='var(--sage)';
+                }
+
+                // Hide delete buttons for read-only future roles
+                // Both current roles have full access — nothing hidden
+            }
+        }catch(e){}
+    }
+
+    async function doLogout(){
+        await fetch('/api/logout',{method:'POST'});
+        window.location.href='/login';
+    }
+
+    async function loadAll(){
+        try{
+            // devices
+            const dr=await fetch('/api/devices');
+            const dd=await dr.json();
+            if(dd.success){
+                devs=dd.devices.map(d=>({
+                    id:d.id,name:d.name,loc:d.loc,ip:d.ip,
+                    status:d.status,model:d.model,
+                    pkt:d.packets,ano:d.anomalies
+                }));
+            }
+            // alerts
+            const ar=await fetch('/api/alerts');
+            const ad=await ar.json();
+            if(ad.success){
+                alts=ad.alerts.map(a=>({
+                    id:a.id,dev:a.device,t:a.time,
+                    type:a.type,model:a.model,
+                    sev:a.severity,lvl:a.level
+                }));
+            }
+            // MUD profiles
+            const mr=await fetch('/api/mud');
+            const md=await mr.json();
+            if(md.success){
+                muds=md.profiles.map(p=>({
+                    name:p.name,ip:p.ip,loc:p.loc,
+                    cl:p.cluster,gw:p.gateway,ports:p.ports,
+                    proto:p.protocol,size:p.pkt_size,
+                    rate:p.rate,ts:p.timestamp,cov:p.coverage
+                }));
+            }
+        }catch(err){
+            console.warn('API unavailable, using local data:',err);
+        }
+        renderDev();
+        renderAlts();
+        pickAlt(alts[0]?.id||'bp');
+        renderMud();
+    }
+
+    loadAll();
+    loadUser();
+</script>
+</body>
+</html>

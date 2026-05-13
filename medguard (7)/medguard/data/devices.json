@@ -1,0 +1,122 @@
+[
+  {
+    "id": "d1",
+    "name": "ECG Monitor",
+    "loc": "ICU-03",
+    "ip": "192.168.1.14",
+    "status": "safe",
+    "model": "XGBoost",
+    "packets": 1240,
+    "anomalies": 0
+  },
+  {
+    "id": "d2",
+    "name": "Insulin Pump",
+    "loc": "Ward B",
+    "ip": "192.168.1.27",
+    "status": "warning",
+    "model": "RF",
+    "packets": 876,
+    "anomalies": 3
+  },
+  {
+    "id": "d3",
+    "name": "BP Monitor",
+    "loc": "OPD-11",
+    "ip": "192.168.1.39",
+    "status": "threat",
+    "model": "XGBoost",
+    "packets": 534,
+    "anomalies": 12
+  },
+  {
+    "id": "d4",
+    "name": "Ventilator",
+    "loc": "ICU-07",
+    "ip": "192.168.1.52",
+    "status": "safe",
+    "model": "CatBoost",
+    "packets": 2103,
+    "anomalies": 0
+  },
+  {
+    "id": "d5",
+    "name": "Infusion Pump",
+    "loc": "OT-2",
+    "ip": "192.168.1.61",
+    "status": "safe",
+    "model": "MLP",
+    "packets": 319,
+    "anomalies": 0
+  },
+  {
+    "id": "d6",
+    "name": "X-Ray Machine",
+    "loc": "Radiology",
+    "ip": "192.168.1.74",
+    "status": "threat",
+    "model": "CatBoost",
+    "packets": 408,
+    "anomalies": 8
+  },
+  {
+    "id": "d7",
+    "name": "Pulse Oximeter",
+    "loc": "Ward C",
+    "ip": "192.168.1.83",
+    "status": "safe",
+    "model": "KNN",
+    "packets": 962,
+    "anomalies": 0
+  },
+  {
+    "id": "d8",
+    "name": "MRI Scanner",
+    "loc": "Imaging",
+    "ip": "192.168.1.91",
+    "status": "safe",
+    "model": "SVM",
+    "packets": 1780,
+    "anomalies": 1
+  },
+  {
+    "id": "d0ed0e2dd",
+    "name": "Cardiac Monitor",
+    "loc": "ICU-09",
+    "ip": "192.168.1.102",
+    "status": "safe",
+    "model": "XGBoost",
+    "packets": 0,
+    "anomalies": 0
+  },
+  {
+    "id": "d97bf24d7",
+    "name": "Defibrillator",
+    "loc": "Emergency",
+    "ip": "192.168.1.115",
+    "status": "safe",
+    "model": "XGBoost",
+    "packets": 0,
+    "anomalies": 0
+  },
+  {
+    "id": "d9671e7c8",
+    "name": "CT Scanner",
+    "loc": "Radiology",
+    "ip": "192.168.1.120",
+    "status": "safe",
+    "model": "XGBoost",
+    "packets": 0,
+    "anomalies": 0
+  },
+  {
+    "id": "d0c221207",
+    "name": "Patient Monitor",
+    "loc": "Ward E",
+    "ip": "192.168.1.138",
+    "status": "safe",
+    "model": "XGBoost",
+    "packets": 0,
+    "anomalies": 0
+  }
+]

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>MedGuard — Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <style>
+        :root{--sage:#8A9A5B;--sage-d:#6a7a43;--bg:#F4F4F4;--dark:#333;--mid:#777;--line:#E0E0E0;--white:#fff;--red:#c0392b;--r:10px;}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+        h1,h2,h3{font-family:'DM Serif Display',serif}
+
+        /* Left panel */
+        .left{background:var(--sage);display:flex;flex-direction:column;justify-content:space-between;padding:48px;position:relative;overflow:hidden}
+        .left::before{content:'';position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.06)}
+        .left::after{content:'';position:absolute;bottom:-60px;left:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.05)}
+        .left-brand{display:flex;align-items:center;gap:12px;z-index:1}
+        .left-logo{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}
+        .left-logo svg{width:24px;height:24px;fill:white}
+        .left-name{font-family:'DM Serif Display',serif;font-size:1.3rem;color:white;line-height:1.1}
+        .left-tag{font-size:.64rem;color:rgba(255,255,255,.7);margin-top:2px}
+        .left-body{z-index:1}
+        .left-title{font-size:2rem;color:white;margin-bottom:12px;line-height:1.2}
+        .left-sub{font-size:.9rem;color:rgba(255,255,255,.75);line-height:1.7;max-width:320px}
+        .left-features{margin-top:28px;display:flex;flex-direction:column;gap:10px}
+        .feat{display:flex;align-items:center;gap:10px;font-size:.82rem;color:rgba(255,255,255,.85)}
+        .feat-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.6);flex-shrink:0}
+        .left-footer{font-size:.68rem;color:rgba(255,255,255,.5);z-index:1}
+
+        /* Right panel */
+        .right{display:flex;align-items:center;justify-content:center;padding:48px}
+        .form-wrap{width:100%;max-width:360px}
+        .form-title{font-size:1.6rem;margin-bottom:6px;color:var(--dark)}
+        .form-sub{font-size:.82rem;color:var(--mid);margin-bottom:28px}
+        .field{margin-bottom:16px}
+        .field label{display:block;font-size:.74rem;font-weight:600;color:var(--dark);margin-bottom:6px;letter-spacing:.02em}
+        .field input{width:100%;padding:10px 13px;border:1.5px solid var(--line);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--dark);outline:none;transition:border-color .15s;background:white}
+        .field input:focus{border-color:var(--sage)}
+        .btn-login{width:100%;padding:11px;border-radius:var(--r);background:var(--sage);color:white;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;border:none;cursor:pointer;transition:background .15s;margin-top:4px}
+        .btn-login:hover{background:var(--sage-d)}
+        .btn-login:disabled{opacity:.6;cursor:not-allowed}
+        .error{background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.2);border-radius:8px;padding:10px 13px;font-size:.78rem;color:var(--red);margin-bottom:14px;display:none;align-items:center;gap:8px}
+        .error.show{display:flex}
+
+        @media(max-width:768px){
+            body{grid-template-columns:1fr}
+            .left{display:none}
+            .right{padding:32px 24px}
+        }
+    </style>
+</head>
+<body>
+
+<!-- Left panel -->
+<div class="left">
+    <div class="left-brand">
+        <div class="left-logo">
+            <svg viewBox="0 0 24 24"><path d="M12 2L4 6v5.5C4 16.75 7.5 21.25 12 22.5C16.5 21.25 20 16.75 20 11.5V6L12 2Z"/><path d="M9 12h2v-2h2v2h2v2h-2v2h-2v-2H9v-2Z" fill="rgba(255,255,255,0.9)" stroke="none"/></svg>
+        </div>
+        <div>
+            <div class="left-name">MedGuard</div>
+            <div class="left-tag">IoT Security Platform</div>
+        </div>
+    </div>
+
+    <div class="left-body">
+        <h2 class="left-title">Protecting hospital devices, automatically.</h2>
+        <p class="left-sub">Real-time threat detection for every IoT device on your network — powered by machine learning.</p>
+        <div class="left-features">
+            <div class="feat"><div class="feat-dot"></div>Auto-generated MUD profiles via K-Means clustering</div>
+            <div class="feat"><div class="feat-dot"></div>7 ML models with up to 99.93% detection accuracy</div>
+            <div class="feat"><div class="feat-dot"></div>SHAP explainability for every detected threat</div>
+            <div class="feat"><div class="feat-dot"></div>Live device monitoring across all hospital wards</div>
+        </div>
+    </div>
+
+    <div class="left-footer">© 2025 MedGuard · Hospital IoT Security</div>
+</div>
+
+<!-- Right panel -->
+<div class="right">
+    <div class="form-wrap">
+        <h2 class="form-title">Sign in</h2>
+        <p class="form-sub">Enter your credentials to access the dashboard.</p>
+
+        <div class="error" id="errMsg">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="errText">Invalid username or password.</span>
+        </div>
+
+        <div class="field">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Enter username" autocomplete="username"/>
+        </div>
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In</button>
+    </div>
+</div>
+
+<script>
+    async function doLogin(){
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const btn      = document.getElementById('loginBtn');
+        const err      = document.getElementById('errMsg');
+        const errTxt   = document.getElementById('errText');
+
+        if(!username || !password){
+            errTxt.textContent = 'Please enter both username and password.';
+            err.classList.add('show');
+            return;
+        }
+
+        btn.disabled    = true;
+        btn.textContent = 'Signing in...';
+        err.classList.remove('show');
+
+        try{
+            const res  = await fetch('/api/login',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username, password})
+            });
+            const data = await res.json();
+            if(data.success){
+                window.location.href = '/';
+            } else {
+                errTxt.textContent = data.error || 'Invalid credentials.';
+                err.classList.add('show');
+                btn.disabled    = false;
+                btn.textContent = 'Sign In';
+            }
+        } catch(e){
+            errTxt.textContent = 'Server error. Make sure Flask is running.';
+            err.classList.add('show');
+            btn.disabled    = false;
+            btn.textContent = 'Sign In';
+        }
+    }
+</script>
+</body>
+</html>
